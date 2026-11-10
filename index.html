@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Virtuelle Stadionvorschau für Rollstuhlfahrende – Prototyp und Simulation (ÜK 368)." />
+    <title>Virtual Stadium Experience · Prototyp</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  </head>
+  <body>
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <div class="shade" aria-hidden="true"></div>
+    <div class="fade" aria-hidden="true"></div>
+
+    <div id="loader" class="loader" role="status">
+      <span class="loader-bar"><span></span></span>
+      <span class="loader-text" data-i18n="loading">Stadion wird aufgebaut …</span>
+    </div>
+
+    <!-- Startseite -->
+    <section id="start" class="screen start" aria-labelledby="start-title" hidden>
+      <header class="start-nav">
+        <span class="wordmark">Virtual Stadium Experience</span>
+        <div class="start-nav-right">
+          <div class="seg seg-sm" role="group" aria-label="Sprache / Language">
+            <button type="button" data-lang="de">DE</button><button type="button" data-lang="en">EN</button>
+          </div>
+        </div>
+      </header>
+      <div class="hero">
+        <p class="eyebrow" data-i18n="eyebrow"></p>
+        <h1 id="start-title" class="match">
+          <span data-i18n="teamA"></span><span class="match-sep" aria-hidden="true"> – </span><span data-i18n="teamB"></span>
+        </h1>
+        <p class="lead" data-i18n="lead"></p>
+        <div class="hero-actions">
+          <button id="enter" class="btn btn-primary btn-lg" type="button" data-i18n="enter"></button>
+          <button id="explore" class="btn btn-text btn-lg" type="button"><span data-i18n="explore"></span><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.7" /></svg></button>
+        </div>
+      </div>
+      <footer class="start-foot">
+        <p class="persona"><span class="persona-mark" aria-hidden="true"></span><span data-i18n="persona"></span></p>
+        <p class="disclaimer"><span class="sim-tag" data-i18n="sim"></span> <span data-i18n="disclaimer"></span> <button id="open-log" class="btn-link" type="button" data-i18n="testlog"></button></p>
+      </footer>
+    </section>
+
+    <!-- Tour -->
+    <section id="tour" class="screen tour" aria-label="Stadiontour" hidden>
+      <header class="bar">
+        <div class="bar-left">
+          <button id="back" class="btn btn-quiet" type="button">
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.7" /></svg>
+            <span data-i18n="back"></span>
+          </button>
+          <span class="sim-tag" data-i18n="sim" data-i18n-title="simNote"></span>
+        </div>
+        <nav class="steps" aria-label="Fortschritt">
+          <p id="step-label" class="step-label"></p>
+          <ol id="progress" class="progress"></ol>
+        </nav>
+        <div class="bar-right">
+          <button id="map-btn" class="btn btn-quiet" type="button" aria-haspopup="dialog">
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M1.5 3.5 5.5 2l5 1.5 4-1.5v10.5l-4 1.5-5-1.5-4 1.5Z M5.5 2v10.5 M10.5 3.5V14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /></svg>
+            <span data-i18n="mapShort"></span>
+          </button>
+          <button id="help-btn" class="btn btn-help" type="button" aria-haspopup="dialog"><span class="help-dot" aria-hidden="true"></span><span data-i18n="help"></span></button>
+          <div class="options">
+            <button id="more-btn" class="btn btn-quiet" type="button" aria-expanded="false" aria-controls="more">
+              <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M2 4.5h12M2 11.5h12" stroke="currentColor" stroke-width="1.4" /><circle cx="10.5" cy="4.5" r="1.9" fill="#000" stroke="currentColor" stroke-width="1.3" /><circle cx="5.5" cy="11.5" r="1.9" fill="#000" stroke="currentColor" stroke-width="1.3" /></svg>
+              <span data-i18n="options"></span>
+            </button>
+            <div id="more" class="menu" role="group" aria-label="Optionen">
+              <div class="menu-row">
+                <span data-i18n="optSound"></span>
+                <button id="sound-btn" class="switch" type="button" role="switch" aria-checked="true"><span></span></button>
+              </div>
+              <div class="menu-row" id="persp-row">
+                <span data-i18n="optCamera"></span>
+                <div class="seg seg-sm" id="persp" role="group">
+                  <button type="button" data-persp="ego" data-i18n="ego"></button><button type="button" data-persp="third" data-i18n="third"></button>
+                </div>
+              </div>
+              <div class="menu-row">
+                <span data-i18n="optMood"></span>
+                <div class="seg seg-sm" id="mode" role="group">
+                  <button type="button" data-mode="before" data-i18n="modeBeforeShort"></button><button type="button" data-mode="live" data-i18n="modeLiveShort"></button>
+                </div>
+              </div>
+              <div class="menu-row">
+                <span data-i18n="optLang"></span>
+                <div class="seg seg-sm" role="group" aria-label="Sprache / Language">
+                  <button type="button" data-lang="de">DE</button><button type="button" data-lang="en">EN</button>
+                </div>
+              </div>
+              <div class="menu-row menu-row-last">
+                <span data-i18n="optHud"></span>
+                <button id="toggle-hud" class="switch" type="button" role="switch" aria-checked="true"><span></span></button>
+              </div>
+              <p class="menu-keys" data-i18n="optKeys"></p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div id="hud" class="hud">
+        <aside id="panel" class="panel" aria-live="polite"></aside>
+
+        <div id="map-wrap" class="minimap">
+          <button id="map-toggle" class="minimap-head" type="button" data-i18n-label="mapBig"><span data-i18n="map"></span><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.5" /></svg></button>
+          <div id="map-slot" class="minimap-slot"><div id="map" class="map-canvas"></div></div>
+        </div>
+
+        <div id="controls" class="controls">
+          <div class="drive" id="drive-ctrl">
+            <button id="rev-btn" class="drive-btn" type="button"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" /></svg><span data-i18n="reverse"></span></button>
+            <button id="fwd-btn" class="drive-btn drive-main" type="button"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 10l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" /></svg><span data-i18n="drive"></span></button>
+            <button id="auto-btn" class="drive-btn" type="button" aria-pressed="false"></button>
+          </div>
+        </div>
+        <p id="hint" class="hint"></p>
+        <div id="poi" class="poi" role="status" hidden></div>
+      </div>
+    </section>
+
+    <!-- Grosse Karte -->
+    <div id="mapsheet" class="mapsheet" hidden>
+      <div class="mapsheet-card" role="dialog" aria-modal="true" aria-labelledby="mapsheet-title">
+        <header class="mapsheet-head">
+          <div>
+            <h2 id="mapsheet-title" data-i18n="map"></h2>
+            <p class="mapsheet-sub" data-i18n="mapSub"></p>
+          </div>
+          <button id="mapsheet-close" class="btn btn-quiet mapsheet-x" type="button">
+            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3 3l10 10M13 3 3 13" stroke="currentColor" stroke-width="1.7" /></svg>
+            <span data-i18n="close"></span>
+          </button>
+        </header>
+        <div id="mapsheet-body" class="mapsheet-body"></div>
+        <footer class="mapsheet-foot">
+          <ul id="map-legend" class="map-legend"></ul>
+          <button id="mapsheet-close-bottom" class="btn btn-primary mapsheet-close-bottom" type="button" data-i18n="closeMap"></button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Hilfe & Notfall -->
+    <aside id="help-sheet" class="sheet" role="dialog" aria-labelledby="help-title" hidden>
+      <div class="sheet-head">
+        <h2 id="help-title" data-i18n="helpTitle"></h2>
+        <button id="help-close" class="icon-btn" type="button" data-i18n-label="close">
+          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3 3l10 10M13 3 3 13" stroke="currentColor" stroke-width="1.7" /></svg>
+        </button>
+      </div>
+      <div id="help-body"></div>
+    </aside>
+
+    <!-- Hinweisfenster -->
+    <div id="modal" class="modal" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <h2 id="modal-title"></h2>
+        <div id="modal-body"></div>
+        <div id="modal-actions" class="modal-actions"></div>
+      </div>
+    </div>
+
+    <div id="fallback" class="fallback" role="alert" hidden>
+      <h2>3D</h2>
+      <p id="fallback-text"></p>
+    </div>
+    <div id="toast" class="toast" role="alert" hidden></div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
