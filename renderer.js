@@ -15,9 +15,9 @@ export function isWebGLAvailable() {
 }
 
 export function createRenderer(canvas) {
-  // Kantenglättung (MSAA) nur, wenn direkt ins Bild gezeichnet wird. Mit Bloom zeichnet die Szene in ein
-  // Zwischenbild, dort wäre MSAA auf dem Bildschirm nur verschwendeter Speicher.
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: HIGH && !BLOOM, powerPreference: 'high-performance' });
+  // Kantenglättung (MSAA) gegen flimmernde Kanten bei Sitzen, Geländern und Flutlicht.
+  // Ohne Bloom glättet der Bildschirm selbst, mit Bloom das Zwischenbild (siehe createComposer).
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !BLOOM, powerPreference: 'high-performance' });
   renderer.setPixelRatio(maxPixelRatio());
   renderer.setSize(window.innerWidth, window.innerHeight, false);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -43,7 +43,10 @@ export function createComposer(renderer, scene, camera) {
       setPixelRatio: () => {},
     };
   }
-  const composer = new EffectComposer(renderer);
+  // Zwischenbild mit 4-facher Kantenglättung, sonst flimmern feine Linien beim Fahren und Drehen
+  const pr = renderer.getPixelRatio();
+  const target = new THREE.WebGLRenderTarget(window.innerWidth * pr, window.innerHeight * pr, { type: THREE.HalfFloatType, samples: 4 });
+  const composer = new EffectComposer(renderer, target);
   composer.addPass(new RenderPass(scene, camera));
   const size = new THREE.Vector2(window.innerWidth, window.innerHeight).multiplyScalar(0.5);
   composer.addPass(new UnrealBloomPass(size, 0.55, 0.42, 0.96));

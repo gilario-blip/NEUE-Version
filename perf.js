@@ -3,7 +3,7 @@ import { QUALITY, BLOOM, SHOW_PERF, ADAPTIVE } from './config.js';
 import { maxPixelRatio } from './renderer.js';
 import { logEvent } from './log.js';
 
-const MIN_RATIO = 0.6;
+const MIN_RATIO = 0.75;
 
 export class PerfMonitor {
   constructor(renderer, composer) {
@@ -31,19 +31,24 @@ export class PerfMonitor {
     }
   }
 
-  // Dynamische Auflösung: wird es langsam, rendert die Szene etwas kleiner; läuft es wieder flüssig, schärfer
+  // Dynamische Auflösung: nur wenn es über mehrere Sekunden deutlich ruckelt, wird die Szene etwas kleiner
+  // gerechnet. Sie wird danach nicht automatisch wieder hochgesetzt, damit das Bild nicht hin- und herspringt.
   adapt(ms) {
     if (!ADAPTIVE || document.hidden) return;
-    if (ms > 40) this.slow++;
-    else this.slow = Math.max(0, this.slow - 1);
-    if (ms < 20) this.fast++;
-    else this.fast = 0;
-    if (this.slow > 45 && this.ratio > MIN_RATIO) {
+    const now = performance.now();
+    if (!this.since) this.since = now;
+    // die ersten Sekunden (Laden, Shader) und Überblendungen nicht werten
+    if (now - this.since < 6000 || document.body.classList.contains('is-fading')) return;
+    this.window = this.window || [];
+    this.window.push(ms);
+    if (this.window.length > 120) this.window.shift();
+    if (this.window.length < 120 || now - (this.lastChange || 0) < 8000) return;
+    const avg = this.window.reduce((a, b) => a + b, 0) / this.window.length;
+    if (avg > 45 && this.ratio > MIN_RATIO) {
       this.setRatio(Math.max(MIN_RATIO, this.ratio - 0.15));
-      this.slow = 0;
-    } else if (this.fast > 300 && this.ratio < maxPixelRatio()) {
-      this.setRatio(Math.min(maxPixelRatio(), this.ratio + 0.1));
-      this.fast = 0;
+      this.lastChange = now;
+      this.window = [];
+      logEvent(`Auflösung automatisch reduziert auf ${this.ratio}x (Ø ${avg.toFixed(0)} ms pro Bild)`);
     }
   }
 
